@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results ignored="0" total="1" passed="1" failed="0" skipped="0">
+  <reporter-output>
+  </reporter-output>
+  <suite started-at="2026-05-05T13:31:54 GMT-06:00" name="Failed suite [Suite]" finished-at="2026-05-05T13:32:24 GMT-06:00" duration-ms="29950">
+    <groups>
+    </groups>
+    <test started-at="2026-05-05T13:31:54 GMT-06:00" name="GreenKart Tests(failed)" finished-at="2026-05-05T13:32:24 GMT-06:00" duration-ms="29950">
+      <class name="tests.TestCase2PromoCodeTest">
+        <test-method is-config="true" signature="setUp()[pri:0, instance:tests.TestCase2PromoCodeTest@ed3068a]" started-at="2026-05-05T13:31:54 GMT-06:00" name="setUp" finished-at="2026-05-05T13:32:05 GMT-06:00" duration-ms="10940" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="applyPromoCodeAndValidateDiscountTest()[pri:0, instance:tests.TestCase2PromoCodeTest@ed3068a]" started-at="2026-05-05T13:32:05 GMT-06:00" name="applyPromoCodeAndValidateDiscountTest" finished-at="2026-05-05T13:32:24 GMT-06:00" duration-ms="18134" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- applyPromoCodeAndValidateDiscountTest -->
+        <test-method is-config="true" signature="tearDown()[pri:0, instance:tests.TestCase2PromoCodeTest@ed3068a]" started-at="2026-05-05T13:32:24 GMT-06:00" name="tearDown" finished-at="2026-05-05T13:32:24 GMT-06:00" duration-ms="728" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+      </class> <!-- tests.TestCase2PromoCodeTest -->
+    </test> <!-- GreenKart Tests(failed) -->
+  </suite> <!-- Failed suite [Suite] -->
+</testng-results>
