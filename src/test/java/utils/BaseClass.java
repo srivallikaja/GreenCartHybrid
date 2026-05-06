@@ -1,49 +1,119 @@
-package utils;
+package poms;
 
 import java.time.Duration;
-import org.openqa.selenium.chrome.ChromeOptions;
+import java.util.List;
+import java.util.Map;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.edge.EdgeDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
-public class BaseClass {
+import utils.ExcelUtils;
 
-    public WebDriver driver;
-    ConfigReader config = new ConfigReader();
+public class HomePage {
 
-    public WebDriver initializeDriver() {
+    WebDriver driver;
+    JavascriptExecutor js;
 
-        String browser = config.getBrowser().toLowerCase();
+    By productNames = By.xpath("//h4[@class='product-name']");
+    By productPrices = By.xpath(".//p[@class='product-price']");
+    By incrementButtons = By.xpath("//a[@class='increment']");
+    By addToCartButtons = By.xpath("//div[@class='product-action']/button");
+    By cartIcon = By.cssSelector("img[alt='Cart']");
+    By cartItems = By.xpath("//div[@class='cart-preview active']//li[@class='cart-item']");
+    By proceedToCheckout = By.xpath("//button[text()='PROCEED TO CHECKOUT']");
+    By productCards = By.xpath("//div[@class='product']");
 
-        switch (browser) {
+    public HomePage(WebDriver driver) {
+        this.driver = driver;
+        js = (JavascriptExecutor) driver;
+    }
 
-        case "chrome":
-            ChromeOptions options = new ChromeOptions();
-            options.addArguments("--headless=new");
-            options.addArguments("--no-sandbox");
-            options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--window-size=1920,1080");
-            driver = new ChromeDriver(options);
-            break;
+    /**
+     * Adds items to the cart as per the items Map.
+     * Writes prices to Excel.
+     * Updates the items Map to remove items as they are found/added.
+     * @return true if all items were found and added; false otherwise
+     */
+    public boolean addItemsToCartAndWritePrice(Map<String, String> items, String filePath, String sheetName)
+            throws Exception {
 
-            case "edge":
-                driver = new EdgeDriver();
-                break;
+        int maxScrolls = 10;
+        int scrollCount = 0;
 
-            case "firefox":
-                driver = new FirefoxDriver();
-                break;
+        // Make a copy of the remaining items so we can check at the end
+        Map<String, String> itemsNotFound = new java.util.HashMap<>(items);
 
-            default:
-                throw new IllegalArgumentException("Invalid browser: " + browser);
+        while (!itemsNotFound.isEmpty() && scrollCount < maxScrolls) {
+            List<WebElement> products = driver.findElements(productCards);
+            boolean foundInThisRound = false;
+
+            for (WebElement product : products) {
+                String name = product.findElement(By.xpath(".//h4[@class='product-name']")).getText().split("-")[0].trim();
+
+                if (itemsNotFound.containsKey(name)) {
+                    int quantity = Integer.parseInt(itemsNotFound.get(name));
+
+                    String price = product.findElement(By.xpath(".//p[@class='product-price']")).getText().trim();
+
+                    System.out.println("Found: " + name + " Quantity: " + quantity + " Price: " + price);
+
+                    ExcelUtils.writePriceToExcel(filePath, sheetName, name, price);
+
+                    for (int j = 1; j < quantity; j++) {
+                        product.findElement(By.xpath(".//a[@class='increment']")).click();
+                    }
+
+                    product.findElement(By.xpath(".//div[@class='product-action']/button")).click();
+
+                    itemsNotFound.remove(name);
+                    foundInThisRound = true;
+                    // No break - in case multiple products on the page
+                }
+            }
+
+            if (!foundInThisRound) {
+                js.executeScript("window.scrollBy(0,500)");
+                scrollCount++;
+            }
         }
 
-        driver.manage().window().maximize();
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+        // Remove found items from original map so test works as before
+        for (String found : items.keySet().toArray(new String[0])) {
+            if (!itemsNotFound.containsKey(found)) {
+                items.remove(found);
+            }
+        }
 
-        driver.get(config.getUrl());
+        // Return true if all required items were found and added
+        return itemsNotFound.isEmpty();
+    }
 
-        return driver;
+    public int waitAndGetCartItemCount(int expectedCount) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait.until(ExpectedConditions.numberOfElementsToBe(cartItems, expectedCount));
+        return driver.findElements(cartItems).size();
+    }
+
+    public void openCart() {
+        driver.findElement(cartIcon).click();
+    }
+
+    public int getCartItemCount() {
+        return driver.findElements(cartItems).size();
+    }
+
+    public boolean isCartNotEmpty() {
+        // Cart count on page (modify selector if UI changes)
+        openCart(); // optional, if needed to reveal cart items
+        int count = getCartItemCount();
+        return count > 0;
+    }
+
+    public void proceedToCheckout() {
+        driver.findElement(proceedToCheckout).click();
     }
 }
